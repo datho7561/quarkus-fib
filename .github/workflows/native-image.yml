@@ -1,0 +1,40 @@
+name: create-native-image
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build:
+    name: create-native-image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@latest
+      - uses: DeLaGuardo/setup-graalvm@3
+        with:
+          graalvm-version: '19.3.0.java11'
+      - name: 'Install native-image'
+        run: 'gu install native-image'
+      - name: 'Package native image with maven'
+        run: './mvnw package -Pnative'
+      - name: 'Create Release'
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        with:
+          tag_name: 0.1.0
+          release_name: 'Release 0.1.0'
+          body: |
+            Initial release
+          draft: true
+          prerelease: true
+      - name: 'Upload Release Asset'
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        with:
+          upload_url: ${{steps.create_release.outputs.upload_url}}
+          asset_path: target/fib-1.0-SNAPSHOT-runner
+          asset_name: fib-1.0-SNAPSHOT-runner-linux
+          asset_content_type: application/octet-stream
