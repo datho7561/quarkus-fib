@@ -6,7 +6,15 @@ on:
 jobs:
   build:
     name: create-native-image
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: ['ubuntu-latest', 'macos-latest']
+        include:
+          - os: 'ubuntu-latest'
+            label: 'linux'
+          - os: 'macos-latest'
+            label: 'mac'
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
       - uses: DeLaGuardo/setup-graalvm@3
@@ -36,5 +44,5 @@ jobs:
         with:
           upload_url: ${{steps.create_release.outputs.upload_url}}
           asset_path: target/fib-1.0-SNAPSHOT-runner
-          asset_name: fib-1.0-SNAPSHOT-runner-linux
+          asset_name: fib-1.0-SNAPSHOT-runner-${{matrix.label}}
           asset_content_type: application/octet-stream
